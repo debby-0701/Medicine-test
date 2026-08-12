@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>護理藥品圖鑑與 3D 展示平台</title>
+  <!-- 載入 Tailwind CSS 快速排版 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 載入 Google <model-viewer> 3D 元件 -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <style>
+    model-viewer {
+      width: 100%;
+      height: 380px;
+      background-color: #f8fafc;
+      border-radius: 0.75rem;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
+
+  <!-- 頁頭資訊 -->
+  <header class="bg-teal-700 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <h1 class="text-2xl font-bold flex items-center gap-2">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+        護理藥理學 3D 視覺化學習平台
+      </h1>
+      <p class="text-teal-100 text-sm mt-1">專為護理系學生設計的臨床藥品分類與立體外觀圖鑑</p>
+    </div>
+  </header>
+
+  <!-- 主內容區：雙欄排版 -->
+  <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- 左側：藥品條列與分類導覽 (占 7 欄) -->
+    <section class="lg:col-span-7 space-y-6">
+      
+      <!-- 搜尋與篩選控制項 -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-3">
+        <!-- 關鍵字搜尋輸入框 -->
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="搜尋藥品英文/中文名、商品名、作用..." 
+          class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+        >
+        <!-- 分類下拉選單 -->
+        <select 
+          id="categorySelect" 
+          class="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+        >
+          <option value="all">所有類別</option>
+          <option value="cvs">心血管系統</option>
+          <option value="cns">中樞神經系統</option>
+          <option value="gi">消化系統</option>
+        </select>
+      </div>
+
+      <!-- 藥品動態渲染區域 -->
+      <div id="drugListContainer" class="space-y-4">
+        <!-- 藥品卡片會由 JavaScript 動態生成注入至此 -->
+      </div>
+
+    </section>
+
+    <!-- 右側：3D 互動展示區 (占 5 欄) -->
+    <section class="lg:col-span-5">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-6">
+        <h3 id="currentDrugTitle" class="text-lg font-bold text-slate-900 mb-1">請選擇左側藥品以查看 3D 模型</h3>
+        <p class="text-xs text-slate-500 mb-4">按住滑鼠左鍵（或單指滑動）可 360 度旋轉模型，滾輪可放大縮小。</p>
+
+        <!-- 3D Viewer 元件 (修正：預設帶入第一個模型路徑) -->
+        <model-viewer 
+          id="drugViewer"
+          src="./models/M01_01_01.glb" 
+          alt="藥品 3D 模型" 
+          auto-rotate 
+          camera-controls 
+          shadow-intensity="1"
+          ar>
+        </model-viewer>
+
+        <!-- 模型檢視輔助按鈕 -->
+        <div class="mt-4 flex gap-2">
+          <button onclick="resetCamera()" class="flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded font-medium">重置視角</button>
+          <button onclick="toggleAutoRotate()" class="flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded font-medium">切換自動旋轉</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 1. 藥品資料庫 (資料陣列)
+    const drugsData = [
+      {
+        id: 'aspirin',
+        nameEn: 'Aspirin',
+        nameZh: '阿司匹靈',
+        category: 'cvs',
+        categoryLabel: '心血管系統',
+        categoryBg: 'bg-teal-100',
+        categoryText: 'text-teal-800',
+        borderClass: 'border-teal-600',
+        dosageForm: '錠劑 100mg',
+        brandName: 'Bokey (伯基)',
+        mechanism: '抑制血小板環氧酶 (COX-1)，減少 TXA2 合成，達到抗血小板凝集效果。',
+        indications: '預防心肌梗塞、缺血性中風。',
+        nursingNotes: [
+          '觀察是否有腸胃道出血跡象（黑便、吐血）。',
+          '手術前 5-7 天通常需依醫囑停藥。'
+        ],
+        modelUrl: './models/M01_01_01.glb' 
+      },
+      {
+        id: 'panadol',
+        nameEn: 'Acetaminophen',
+        nameZh: '乙醯胺酚',
+        category: 'cns',
+        categoryLabel: '中樞神經系統',
+        categoryBg: 'bg-blue-100',
+        categoryText: 'text-blue-800',
+        borderClass: 'border-blue-600',
+        dosageForm: '膠囊/錠劑 500mg',
+        brandName: 'Panadol (普拿疼)',
+        mechanism: '作用於中樞神經系統，阻斷痛覺傳導，抑制體溫調節中心。',
+        indications: '解熱、緩解輕至中度疼痛。',
+        nursingNotes: [
+          '每日最大劑量切勿超過 4000 mg，避免肝毒性。',
+          '詢問病人是否有肝硬化或酗酒史。'
+        ],
+        modelUrl: './models/M01_01_02.glb' 
+      },
+      {
+        id: 'st swallow',
+        nameEn: 'St swallow',
+        nameZh: '胃藥錠',
+        category: 'gi',
+        categoryLabel: '消化系統',
+        categoryBg: 'bg-emerald-100',
+        categoryText: 'text-emerald-800',
+        borderClass: 'border-emerald-600',
+        dosageForm: '錠劑 250mg',
+        brandName: 'Ulcer-off (潰瘍平)',
+        mechanism: '中和胃酸，減輕胃酸對胃黏膜之刺激。',
+        indications: '胃酸過多、十二指腸潰瘍痛。',
+        nursingNotes: [
+          '建議餐前 30 分鐘或飯後 1 小時服用。',
+          '避免與鐵劑同時服用以免影響吸收。'
+        ],
+        modelUrl: './models/M01_01_03.glb'
+      }
+    ];
+
+    // DOM 元素選取
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const drugListContainer = document.getElementById('drugListContainer');
+    const viewer = document.getElementById('drugViewer');
+    const title = document.getElementById('currentDrugTitle');
+
+    // 2. 渲染藥品卡片到畫面的函式
+    function renderDrugs(list) {
+      if (list.length === 0) {
+        drugListContainer.innerHTML = `
+          <div class="bg-white p-8 text-center text-slate-400 rounded-xl border border-slate-200">
+            找不到符合條件的藥品資料。
+          </div>
+        `;
+        return;
+      }
+
+      drugListContainer.innerHTML = list.map(drug => `
+        <article 
+          onclick="selectDrug('${drug.id}')" 
+          class="bg-white p-5 rounded-xl shadow-sm border-l-4 ${drug.borderClass} hover:shadow-md transition cursor-pointer"
+        >
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <span class="inline-block px-2.5 py-0.5 ${drug.categoryBg} ${drug.categoryText} text-xs font-semibold rounded-full mb-1">
+                ${drug.categoryLabel}
+              </span>
+              <h2 class="text-xl font-bold text-slate-900">${drug.nameEn} <span class="text-sm font-normal text-slate-500">(${drug.nameZh})</span></h2>
+            </div>
+            <span class="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-1 rounded">${drug.dosageForm}</span>
+          </div>
+
+          <ul class="text-sm space-y-1.5 text-slate-600 mt-3 border-t border-slate-100 pt-3">
+            <li><strong class="text-slate-800">商品名：</strong> ${drug.brandName}</li>
+            <li><strong class="text-slate-800">藥理機轉：</strong> ${drug.mechanism}</li>
+            <li><strong class="text-slate-800">臨床適應症：</strong> ${drug.indications}</li>
+            <li><strong class="text-slate-800">護理衛教與注意事項：</strong>
+              <ul class="list-disc list-inside pl-2 text-slate-500 text-xs mt-1 space-y-0.5">
+                ${drug.nursingNotes.map(note => `<li>${note}</li>`).join('')}
+              </ul>
+            </li>
+          </ul>
+        </article>
+      `).join('');
+    }
+
+    // 3. 複合篩選與搜尋邏輯
+    function filterDrugs() {
+      const keyword = searchInput.value.toLowerCase().trim();
+      const selectedCategory = categorySelect.value;
+
+      const filtered = drugsData.filter(drug => {
+        const matchCategory = selectedCategory === 'all' || drug.category === selectedCategory;
+        const matchKeyword = 
+          drug.nameEn.toLowerCase().includes(keyword) ||
+          drug.nameZh.toLowerCase().includes(keyword) ||
+          drug.brandName.toLowerCase().includes(keyword) ||
+          drug.mechanism.toLowerCase().includes(keyword) ||
+          drug.indications.toLowerCase().includes(keyword);
+
+        return matchCategory && matchKeyword;
+      });
+
+      renderDrugs(filtered);
+    }
+
+    // 4. 點擊藥品載入對應 3D 模型 (修正：優化鏡頭與模型重置)
+    function selectDrug(drugId) {
+      const drug = drugsData.find(d => d.id === drugId);
+      if (drug) {
+        title.innerText = `${drug.nameEn} (${drug.nameZh}) - 3D 模型`;
+        
+        // 切換模型路徑
+        viewer.src = drug.modelUrl;
+
+        // 重置視角與聚焦，確保不同尺寸的模型都能置中
+        viewer.cameraOrbit = 'auto auto auto';
+        if (typeof viewer.jumpToGoal === 'function') {
+          viewer.jumpToGoal();
+        }
+      }
+    }
+
+    // 5. 3D 模型操作按鈕 (修正：採用自動計算最佳角)
+    function resetCamera() {
+      viewer.cameraOrbit = 'auto auto auto';
+      viewer.cameraTarget = 'auto auto auto';
+    }
+
+    function toggleAutoRotate() {
+      viewer.autoRotate = !viewer.autoRotate;
+    }
+
+    // 6. 事件監聽 (EventListener) 綁定
+    searchInput.addEventListener('input', filterDrugs);
+    categorySelect.addEventListener('change', filterDrugs);
+
+    // 頁面初始化
+    renderDrugs(drugsData);
+    if (drugsData.length > 0) {
+      selectDrug(drugsData[0].id);
+    }
+  </script>
+
+</body>
+</html>
