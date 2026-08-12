@@ -30,10 +30,35 @@
     </div>
   </header>
 
-  <!-- 主內容區：雙欄排版 -->
-  <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <!-- 主內容區：Flex/Grid 響應式排版 -->
+  <main class="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:grid lg:grid-cols-12 gap-8">
     
-    <!-- 左側：藥品條列與分類導覽 (占 7 欄) -->
+    <!-- 3D 互動展示區：手機版排第一 (order-first)，電腦版恢復為右側 5 欄 (lg:order-last lg:col-span-5) -->
+    <section class="order-first lg:order-last lg:col-span-5">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-6">
+        <h3 id="currentDrugTitle" class="text-lg font-bold text-slate-900 mb-1">請選擇下方藥品以查看 3D 模型</h3>
+        <p class="text-xs text-slate-500 mb-4">按住滑鼠左鍵（或單指滑動）可 360 度旋轉模型，滾輪或雙指可放大縮小。</p>
+
+        <!-- 3D Viewer 元件 -->
+        <model-viewer 
+          id="drugViewer"
+          src="./models/M01_01_01.glb" 
+          alt="藥品 3D 模型" 
+          auto-rotate 
+          camera-controls 
+          shadow-intensity="1"
+          ar>
+        </model-viewer>
+
+        <!-- 模型檢視輔助按鈕 -->
+        <div class="mt-4 flex gap-2">
+          <button onclick="resetCamera()" class="flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded font-medium">重置視角</button>
+          <button onclick="toggleAutoRotate()" class="flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded font-medium">切換自動旋轉</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 藥品條列與分類導覽：手機版排第二，電腦版占左側 7 欄 (lg:col-span-7) -->
     <section class="lg:col-span-7 space-y-6">
       
       <!-- 搜尋與篩選控制項 -->
@@ -62,31 +87,6 @@
         <!-- 藥品卡片會由 JavaScript 動態生成注入至此 -->
       </div>
 
-    </section>
-
-    <!-- 右側：3D 互動展示區 (占 5 欄) -->
-    <section class="lg:col-span-5">
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-6">
-        <h3 id="currentDrugTitle" class="text-lg font-bold text-slate-900 mb-1">請選擇左側藥品以查看 3D 模型</h3>
-        <p class="text-xs text-slate-500 mb-4">按住滑鼠左鍵（或單指滑動）可 360 度旋轉模型，滾輪可放大縮小。</p>
-
-        <!-- 3D Viewer 元件 (修正：預設帶入第一個模型路徑) -->
-        <model-viewer 
-          id="drugViewer"
-          src="./models/M01_01_01.glb" 
-          alt="藥品 3D 模型" 
-          auto-rotate 
-          camera-controls 
-          shadow-intensity="1"
-          ar>
-        </model-viewer>
-
-        <!-- 模型檢視輔助按鈕 -->
-        <div class="mt-4 flex gap-2">
-          <button onclick="resetCamera()" class="flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded font-medium">重置視角</button>
-          <button onclick="toggleAutoRotate()" class="flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded font-medium">切換自動旋轉</button>
-        </div>
-      </div>
     </section>
 
   </main>
@@ -220,7 +220,7 @@
       renderDrugs(filtered);
     }
 
-    // 4. 點擊藥品載入對應 3D 模型 (修正：優化鏡頭與模型重置)
+    // 4. 點擊藥品載入對應 3D 模型與滑動至頂部
     function selectDrug(drugId) {
       const drug = drugsData.find(d => d.id === drugId);
       if (drug) {
@@ -229,15 +229,20 @@
         // 切換模型路徑
         viewer.src = drug.modelUrl;
 
-        // 重置視角與聚焦，確保不同尺寸的模型都能置中
+        // 重置視角與聚焦
         viewer.cameraOrbit = 'auto auto auto';
         if (typeof viewer.jumpToGoal === 'function') {
           viewer.jumpToGoal();
         }
+
+        // 手機版優化：點擊藥品卡片時，平滑捲動到上方 3D 模型展示區
+        if (window.innerWidth < 1024) {
+          viewer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
     }
 
-    // 5. 3D 模型操作按鈕 (修正：採用自動計算最佳角)
+    // 5. 3D 模型操作按鈕
     function resetCamera() {
       viewer.cameraOrbit = 'auto auto auto';
       viewer.cameraTarget = 'auto auto auto';
