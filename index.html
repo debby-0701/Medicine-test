@@ -141,27 +141,29 @@
 
   <!-- JavaScript 邏輯 -->
   <script>
-    // Release jsDelivr CDN 基礎路徑 (指向版本 Tag v1.0.0)
-    const CDN_BASE_URL = "https://cdn.jsdelivr.net/gh/debby-0701/Medicine-test@v1.0.0/";
+    // Supabase 公開儲存桶的基礎網址
+    const SUPABASE_BASE_URL = "https://mxoubofrsvzxyknagweb.supabase.co/storage/v1/object/public/models/";
 
-    function getReleaseCdnUrl(rawPath) {
+    function getSupabaseUrl(rawPath) {
         if (!rawPath || typeof rawPath !== 'string' || rawPath.trim() === '') return '';
 
-        // 取出檔名 (例如 "m01_針頭.glb" 或 "M01_針頭.glb")
+        // 如果傳入的是完整 HTTP 網址則直接返回
+        if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
+            return rawPath;
+        }
+
+        // 取出檔名 (例如 "M01_針頭.glb")
         let fileName = rawPath.trim().split('/').pop().split('\\').pop();
         
-        // 抓出檔名中的編號與中文名稱，確保格式與 Release 附件完全一致
-        // 如果檔名開頭是小寫 m，自動轉為大寫 M
+        // 自動校正大小寫 (例如將開頭小寫 m01 改為大寫 M01)
         if (fileName.startsWith('m')) {
             fileName = 'M' + fileName.slice(1);
         }
 
-        // 對中文與特殊字元進行 URL Encode 編碼 (解決網址中文亂碼問題)
+        // 自動對中文檔名進行 URL Encode 編碼
         const encodedFileName = encodeURIComponent(fileName);
         
-        const finalUrl = CDN_BASE_URL + encodedFileName;
-        console.log("🔗 載入 CDN 模型網址：", finalUrl);
-        return finalUrl;
+        return SUPABASE_BASE_URL + encodedFileName;
     }
 
     let drugsData = [];
@@ -302,9 +304,8 @@
         if (drug.modelUrl && drug.modelUrl.trim() !== '') {
           noModelNotice.className = 'hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400';
           
-          const targetUrl = getReleaseCdnUrl(drug.modelUrl);
+          const targetUrl = getSupabaseUrl(drug.modelUrl);
           
-          // 使用 setAttribute 設定 src
           viewer.setAttribute('src', targetUrl);
 
           viewer.cameraOrbit = 'auto auto auto';
