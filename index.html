@@ -141,8 +141,8 @@
 
   <!-- JavaScript 邏輯 -->
   <script>
-    // GitHub Releases 下載基礎網址
-    const BASE_MODEL_URL = "https://github.com/debby-0701/Medicine-test/releases/download/v1.0.0/";
+    // 使用 jsDelivr CDN 代理 GitHub Releases 檔案，避開 302 重定向與 CORS 封鎖
+    const BASE_MODEL_URL = "https://cdn.jsdelivr.net/gh/debby-0701/Medicine-test@v1.0.0/";
 
     function getCloudModelUrl(localPath) {
         if (!localPath || typeof localPath !== 'string' || localPath.trim() === '') return '';
@@ -154,13 +154,13 @@
         const cleanPath = localPath.trim();
         let fileName = cleanPath.split('/').pop().split('\\').pop(); 
         
-        // 自動修復大小寫問題 (小寫 m 轉大寫 M)
+        // 自動修復首字母大小寫問題 (小寫 m 轉大寫 M)
         if (fileName.startsWith('m')) {
             fileName = 'M' + fileName.slice(1);
         } 
         
         const finalUrl = BASE_MODEL_URL + fileName;
-        console.log("🔗 嘗試載入 Release 模型：", finalUrl);
+        console.log("🔗 嘗試載入 CDN 模型：", finalUrl);
         return finalUrl;
     }
 
@@ -286,9 +286,6 @@
       renderDrugs(filtered);
     }
 
-    // 儲存目前 Blob 網址，便於釋放記憶體
-    let currentBlobUrl = null;
-
     function selectDrug(drugId) {
       const title = document.getElementById('currentDrugTitle');
       const viewer = document.getElementById('drugViewer');
@@ -306,28 +303,9 @@
           noModelNotice.className = 'hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400';
           
           const targetUrl = getCloudModelUrl(drug.modelUrl);
-
-          // 釋放先前建立的 Blob URL
-          if (currentBlobUrl) {
-            URL.revokeObjectURL(currentBlobUrl);
-            currentBlobUrl = null;
-          }
-
-          // Fetch 下載並轉成 Blob，解決 CORS 與 403 代理問題
-          fetch(targetUrl)
-            .then(res => {
-              if (!res.ok) throw new Error('Release 模型讀取失敗');
-              return res.blob();
-            })
-            .then(blob => {
-              currentBlobUrl = URL.createObjectURL(blob);
-              viewer.src = currentBlobUrl;
-            })
-            .catch(err => {
-              console.error("載入 Release 模型失敗：", err);
-              viewer.src = '';
-              noModelNotice.className = 'absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400';
-            });
+          
+          // 直接將 CORS-friendly 的 CDN 網址給予 model-viewer
+          viewer.src = targetUrl;
 
           viewer.cameraOrbit = 'auto auto auto';
           if (typeof viewer.jumpToGoal === 'function') {
