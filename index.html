@@ -27,7 +27,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 antialiased relative">
 
-  <!-- 綠色 Header 標題列 -->
+  <!-- Header 標題列 -->
   <header class="bg-emerald-800 text-white py-4 shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 flex flex-col gap-0.5">
       <h1 class="text-xl sm:text-2xl font-bold tracking-wide">
@@ -141,8 +141,8 @@
 
   <!-- JavaScript 邏輯 -->
   <script>
-    // 使用 jsDelivr CDN 代理 GitHub Releases 檔案，避開 302 重定向與 CORS 封鎖
-    const BASE_MODEL_URL = "https://cdn.jsdelivr.net/gh/debby-0701/Medicine-test@v1.0.0/";
+    // 使用 Statically CDN 的跨網域相容 Release 代理網址
+    const BASE_MODEL_URL = "https://cdn.statically.io/gh/debby-0701/Medicine-test/v1.0.0/";
 
     function getCloudModelUrl(localPath) {
         if (!localPath || typeof localPath !== 'string' || localPath.trim() === '') return '';
@@ -154,13 +154,15 @@
         const cleanPath = localPath.trim();
         let fileName = cleanPath.split('/').pop().split('\\').pop(); 
         
-        // 自動修復首字母大小寫問題 (小寫 m 轉大寫 M)
+        // 修復首字母大小寫 (m01_... 轉 M01_...)
         if (fileName.startsWith('m')) {
             fileName = 'M' + fileName.slice(1);
         } 
         
-        const finalUrl = BASE_MODEL_URL + fileName;
-        console.log("🔗 嘗試載入 CDN 模型：", finalUrl);
+        // 第一優先：如果 Release 是存放在存儲庫根目錄/特定資料夾的，可經由 CDN 直連
+        // 亦自動兼容釋出檔案 (Github Tag 訪問)
+        const finalUrl = `https://cdn.jsdelivr.net/gh/debby-0701/Medicine-test@v1.0.0/${fileName}`;
+        console.log("🔗 嘗試載入模型網址：", finalUrl);
         return finalUrl;
     }
 
@@ -229,7 +231,7 @@
       }
 
       drugListContainer.innerHTML = list.map(drug => {
-        const subNote = drawerSubtitles[drug.category] || drug.subtitle || '';
+        const subNote = drawerSubtitles[drugCategory(drug.category)] || drug.subtitle || '';
         const theme = categoryThemeMap[drug.category] || { borderClass: 'border-emerald-600', categoryBg: 'bg-emerald-50 text-emerald-800 border border-emerald-200' };
         const borderClass = drug.borderClass || theme.borderClass;
         const categoryBg = drug.categoryBg || theme.categoryBg;
@@ -261,6 +263,10 @@
           </article>
         `;
       }).join('');
+    }
+
+    function drugCategory(cat) {
+      return cat || '';
     }
 
     function filterDrugs() {
@@ -304,15 +310,15 @@
           
           const targetUrl = getCloudModelUrl(drug.modelUrl);
           
-          // 直接將 CORS-friendly 的 CDN 網址給予 model-viewer
-          viewer.src = targetUrl;
+          // 直接將網址給予 model-viewer 讓其原生請求
+          viewer.setAttribute('src', targetUrl);
 
           viewer.cameraOrbit = 'auto auto auto';
           if (typeof viewer.jumpToGoal === 'function') {
             viewer.jumpToGoal();
           }
         } else {
-          viewer.src = '';
+          viewer.removeAttribute('src');
           noModelNotice.className = 'absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400';
         }
       }
