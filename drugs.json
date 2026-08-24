@@ -8,7 +8,7 @@
    "categoryLabel": "檯面橋架",
    "quantity": "",
    "dosageForm": "",
-   "modelUrl": "./models/M01_01_01.glb"
+   "modelUrl": "./models/m01_01_01.glb"
  },
  {
    "id": "drug_002",
@@ -19,7 +19,7 @@
    "categoryLabel": "檯面橋架",
    "quantity": "",
    "dosageForm": "",
-   "modelUrl": "./models/M01_01_02.glb"
+   "modelUrl": "./models/m01_01_02.glb"
  },
  {
    "id": "drug_003",
@@ -30,7 +30,7 @@
    "categoryLabel": "檯面橋架",
    "quantity": "10",
    "dosageForm": "",
-   "modelUrl": "./models/M01_01_03.glb"
+   "modelUrl": "./models/m01_01_03.glb"
  },
  {
    "id": "drug_004",
@@ -41,7 +41,7 @@
    "categoryLabel": "檯面橋架",
    "quantity": "10",
    "dosageForm": "20ml",
-   "modelUrl": "./models/M01_02.glb"
+   "modelUrl": "./models/m01_02.glb"
  },
  {
    "id": "drug_005",
