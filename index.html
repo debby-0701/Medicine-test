@@ -14,13 +14,13 @@
   <style>
     model-viewer {
       width: 100%;
-      height: 180px; /* 手機版調短高度 */
+      height: 130px; /* 手機版大幅縮短高度 */
       background-color: #f8fafc;
       --poster-color: transparent;
     }
     @media (min-width: 1024px) {
       model-viewer {
-        height: 440px; /* 電腦版高度 */
+        height: 440px; /* 電腦版維持原高度 */
       }
     }
   </style>
@@ -28,9 +28,9 @@
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 antialiased relative">
 
   <!-- Header 標題列 -->
-  <header class="bg-emerald-800 text-white py-4 shadow-md sticky top-0 z-50">
+  <header class="bg-emerald-800 text-white py-3 lg:py-4 shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 flex flex-col gap-0.5">
-      <h1 class="text-xl sm:text-2xl font-bold tracking-wide">
+      <h1 class="text-lg sm:text-2xl font-bold tracking-wide">
         混合實境急救車 3D 視覺化模擬平台
       </h1>
       <p class="text-xs text-emerald-200">1:1 混合實境急救車配置、藥品與用物圖鑑與擬真學習系統</p>
@@ -38,25 +38,25 @@
   </header>
 
   <!-- 主要內容區 -->
-  <main class="max-w-7xl mx-auto px-6 py-6">
+  <main class="max-w-7xl mx-auto px-6 py-4 lg:py-6">
 
     <!-- 主容器 -->
-    <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
+    <div class="flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 items-start">
       
-      <!-- 3D 模型展示區（手機版改為滿版與較短高度） -->
-      <section class="w-full order-1 lg:order-2 lg:col-span-5 sticky top-[73px] lg:top-24 z-40 bg-slate-100 lg:bg-transparent pb-3 lg:pb-0">
-        <div class="bg-white -mx-6 px-6 py-3 lg:mx-0 lg:p-5 rounded-none lg:rounded-2xl shadow-md lg:shadow-sm border-y lg:border border-slate-200">
+      <!-- 3D 模型展示區（手機版滿版且精簡緊湊） -->
+      <section class="w-full order-1 lg:order-2 lg:col-span-5 sticky top-[57px] lg:top-24 z-40 bg-slate-100 lg:bg-transparent pb-2 lg:pb-0">
+        <div class="bg-white -mx-6 px-4 py-2 lg:mx-0 lg:p-5 rounded-none lg:rounded-2xl shadow-md lg:shadow-sm border-y lg:border border-slate-200">
           
           <!-- 模型標題與說明 -->
-          <div class="mb-2 lg:mb-3">
-            <h2 id="currentDrugTitle" class="text-base lg:text-lg font-bold text-slate-900 truncate">
+          <div class="mb-1.5 lg:mb-3 flex justify-between items-baseline">
+            <h2 id="currentDrugTitle" class="text-sm lg:text-lg font-bold text-slate-900 truncate">
               Aspirin (阿司匹靈) - 3D 模型
             </h2>
-            <p class="text-xs text-slate-400 mt-0.5">按住滑鼠左鍵（或單指滑動）可 360 度旋轉模型。</p>
+            <span class="text-[10px] lg:text-xs text-slate-400 shrink-0 ml-2">單指旋轉 / 兩指縮放</span>
           </div>
 
           <!-- 3D 模型展示元件 -->
-          <div class="relative rounded-lg lg:rounded-xl overflow-hidden border border-slate-100 mb-2 lg:mb-4 bg-slate-50">
+          <div class="relative rounded-lg lg:rounded-xl overflow-hidden border border-slate-100 mb-1.5 lg:mb-4 bg-slate-50">
             <model-viewer 
               id="drugViewer" 
               camera-controls 
@@ -66,17 +66,17 @@
             >
             </model-viewer>
 
-            <div id="noModelNotice" class="hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400">
+            <div id="noModelNotice" class="hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-4 text-center text-slate-400">
               <p class="text-xs font-medium">此藥品項目暫無 3D 模型檔案</p>
             </div>
           </div>
 
           <!-- 按鈕區塊 -->
           <div class="grid grid-cols-2 gap-2 lg:gap-3">
-            <button type="button" onclick="resetCamera()" class="w-full py-1.5 lg:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
+            <button type="button" onclick="resetCamera()" class="w-full py-1 lg:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md lg:rounded-lg transition">
               重設視角
             </button>
-            <button type="button" onclick="toggleAutoRotate()" class="w-full py-1.5 lg:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
+            <button type="button" onclick="toggleAutoRotate()" class="w-full py-1 lg:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
               切換自動旋轉
             </button>
           </div>
@@ -94,7 +94,7 @@
               type="text" 
               id="searchInput" 
               placeholder="搜尋藥品英文/中文名、商品名、作用..." 
-              class="w-full pl-4 pr-4 py-2 text-sm text-slate-600 bg-transparent focus:outline-none"
+              class="w-full pl-3 pr-3 py-1.5 text-sm text-slate-600 bg-transparent focus:outline-none"
             />
           </div>
 
@@ -103,7 +103,7 @@
           <div class="w-full flex-1">
             <select 
               id="categorySelect" 
-              class="w-full px-3 py-2 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-emerald-600 bg-white text-slate-700 cursor-pointer"
+              class="w-full px-2 py-1.5 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-emerald-600 bg-white text-slate-700 cursor-pointer"
             >
               <option value="all">所有類別</option>
               <option value="bridge">檯面橋架</option>
@@ -249,15 +249,15 @@
         }
 
         return `
-          <article onclick="selectDrug('${drug.id}')" class="bg-white p-6 rounded-2xl shadow-sm border-l-4 ${borderClass} hover:shadow-md transition cursor-pointer relative">
-            <div class="flex justify-between items-center mb-3">
-              <span class="inline-block px-2.5 py-0.5 ${categoryBg} text-xs font-semibold rounded-md">${drug.categoryLabel || drug.category}</span>
+          <article onclick="selectDrug('${drug.id}')" class="bg-white p-5 rounded-2xl shadow-sm border-l-4 ${borderClass} hover:shadow-md transition cursor-pointer relative">
+            <div class="flex justify-between items-center mb-2">
+              <span class="inline-block px-2 py-0.5 ${categoryBg} text-xs font-semibold rounded-md">${drug.categoryLabel || drug.category}</span>
               ${quantityHtml}
             </div>
             ${subNoteHtml}
-            <h3 class="text-xl font-bold text-slate-900 mb-1.5">${formatDrugName(drug)}</h3>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">${formatDrugName(drug)}</h3>
             ${dosageHtml}
-            <div class="text-sm space-y-2 text-slate-700 border-t border-slate-100 pt-3">
+            <div class="text-sm space-y-1.5 text-slate-700 border-t border-slate-100 pt-2">
               ${brandHtml}${mechHtml}${indHtml}${nursingHtml}
             </div>
           </article>
@@ -302,7 +302,7 @@
         title.innerText = `${displayName} - 3D 模型`;
 
         if (drug.modelUrl && drug.modelUrl.trim() !== '') {
-          noModelNotice.className = 'hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400';
+          noModelNotice.className = 'hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-4 text-center text-slate-400';
           
           const targetUrl = getSupabaseUrl(drug.modelUrl);
           
@@ -314,7 +314,7 @@
           }
         } else {
           viewer.removeAttribute('src');
-          noModelNotice.className = 'absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400';
+          noModelNotice.className = 'absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-4 text-center text-slate-400';
         }
       }
     }
