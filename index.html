@@ -313,7 +313,7 @@
             currentBlobUrl = null;
           }
 
-          // Fetch 下載並轉成 Blob，解決 CORS 問題
+          // Fetch 下載並轉成 Blob，解決 CORS 與 403 代理問題
           fetch(targetUrl)
             .then(res => {
               if (!res.ok) throw new Error('Release 模型讀取失敗');
