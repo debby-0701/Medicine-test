@@ -154,7 +154,11 @@
 
         // 精確清理路徑並抓出最後的檔名 (處理 / 或 \ 的情況)
         const cleanPath = localPath.trim();
-        const fileName = cleanPath.split('/').pop().split('\\').pop(); 
+        let fileName = cleanPath.split('/').pop().split('\\').pop(); 
+// 如果檔名是小寫 m 開頭（例如 m01_01_02.glb），自動改成大寫 M01_01_02.glb
+if (fileName.startsWith('m')) {
+    fileName = 'M' + fileName.slice(1);
+} 
         
         const finalUrl = BASE_MODEL_URL + fileName;
         console.log("🔗 嘗試載入模型網址：", finalUrl);
