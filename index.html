@@ -146,6 +146,20 @@
 
   <!-- JavaScript 邏輯 -->
   <script>
+    // GitHub Releases 雲端網址自動轉接設定
+    const BASE_MODEL_URL = "https://github.com/debby-0701/Medicine-test/releases/download/v1.0.0/";
+
+    function getCloudModelUrl(localPath) {
+        if (!localPath || localPath.trim() === '') return '';
+        // 如果已經是完整的網址，就不重複轉接
+        if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
+            return localPath;
+        }
+        // 從檔名擷取檔名，自動串接 GitHub Releases 網址
+        const fileName = localPath.split('/').pop(); 
+        return BASE_MODEL_URL + fileName;
+    }
+
     let drugsData = [];
 
     // 各抽屜對應的內文補充說明
@@ -332,7 +346,10 @@
 
         if (drug.modelUrl && drug.modelUrl.trim() !== '') {
           noModelNotice.className = 'hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400';
-          viewer.src = drug.modelUrl;
+          
+          // 自動將 JSON 裡的檔名轉換為 GitHub Releases 的雲端直連網址
+          viewer.src = getCloudModelUrl(drug.modelUrl);
+          
           viewer.cameraOrbit = 'auto auto auto';
           if (typeof viewer.jumpToGoal === 'function') {
             viewer.jumpToGoal();
