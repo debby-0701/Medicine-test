@@ -27,7 +27,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 antialiased relative">
 
-  <!-- 綠色 Header 標題列（設定 sticky top-0 z-50 浮動固定在螢幕最頂端） -->
+  <!-- 綠色 Header 標題列 -->
   <header class="bg-emerald-800 text-white py-4 shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 flex flex-col gap-0.5">
       <h1 class="text-xl sm:text-2xl font-bold tracking-wide">
@@ -40,10 +40,10 @@
   <!-- 主要內容區 -->
   <main class="max-w-7xl mx-auto px-6 py-6">
 
-    <!-- 主容器：手機版為 single column（透過 order 調整順序），電腦版為 12 欄雙欄 -->
+    <!-- 主容器 -->
     <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
       
-      <!-- 3D 模型展示區（手機版 order-1 置頂，sticky top-[73px] 貼在抬頭下方；電腦版 order-2 靠右置頂） -->
+      <!-- 3D 模型展示區 -->
       <section class="w-full order-1 lg:order-2 lg:col-span-5 sticky top-[73px] lg:top-24 z-40 bg-slate-100 lg:bg-transparent pb-3 lg:pb-0">
         <div class="bg-white p-4 lg:p-5 rounded-2xl shadow-md lg:shadow-sm border border-slate-200">
           
@@ -84,12 +84,11 @@
         </div>
       </section>
 
-      <!-- 左側欄位：包含搜尋列 + 藥品卡片清單（手機版 order-2 排在模型下方，電腦版 order-1 佔 7 欄） -->
+      <!-- 左側欄位：包含搜尋列 + 藥品卡片清單 -->
       <div class="w-full order-2 lg:order-1 lg:col-span-7 space-y-4">
         
-        <!-- 搜尋與篩選列（精確對齊下方藥品卡片欄位） -->
+        <!-- 搜尋與篩選列 -->
         <section class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-3 items-center">
-          <!-- 搜尋框 -->
           <div class="relative w-full flex-1">
             <input 
               type="text" 
@@ -99,10 +98,8 @@
             />
           </div>
 
-          <!-- 分隔線 -->
           <div class="hidden sm:block h-6 w-[1px] bg-slate-200"></div>
 
-          <!-- 類別下拉選單 -->
           <div class="w-full flex-1">
             <select 
               id="categorySelect" 
@@ -122,9 +119,7 @@
         </section>
 
         <!-- 藥品卡片動態渲染容器 -->
-        <div class="space-y-4" id="drugListContainer">
-          <!-- 卡片會由 JavaScript 動態生成 -->
-        </div>
+        <div class="space-y-4" id="drugListContainer"></div>
 
       </div>
 
@@ -150,19 +145,24 @@
     const BASE_MODEL_URL = "https://github.com/debby-0701/Medicine-test/releases/download/v1.0.0/";
 
     function getCloudModelUrl(localPath) {
-        if (!localPath || localPath.trim() === '') return '';
-        // 如果已經是完整的網址，就不重複轉接
+        if (!localPath || typeof localPath !== 'string' || localPath.trim() === '') return '';
+        
+        // 如果已經是 HTTP 網址就直接傳回
         if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
             return localPath;
         }
-        // 從檔名擷取檔名，自動串接 GitHub Releases 網址
-        const fileName = localPath.split('/').pop(); 
-        return BASE_MODEL_URL + fileName;
+
+        // 精確清理路徑並抓出最後的檔名 (處理 / 或 \ 的情況)
+        const cleanPath = localPath.trim();
+        const fileName = cleanPath.split('/').pop().split('\\').pop(); 
+        
+        const finalUrl = BASE_MODEL_URL + fileName;
+        console.log("🔗 嘗試載入模型網址：", finalUrl);
+        return finalUrl;
     }
 
     let drugsData = [];
 
-    // 各抽屜對應的內文補充說明
     const drawerSubtitles = {
       'drawer1': '急救車必備藥品',
       'drawer2': '靜脈輸液用物',
@@ -170,43 +170,17 @@
       'drawer4': '其它輔助用物'
     };
 
-    // 低彩度相近色主題
     const categoryThemeMap = {
-      'bridge': {
-        borderClass: 'border-emerald-600',
-        categoryBg: 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-      },
-      'countertop': {
-        borderClass: 'border-teal-600',
-        categoryBg: 'bg-teal-50 text-teal-800 border border-teal-200'
-      },
-      'drawer1': {
-        borderClass: 'border-cyan-600',
-        categoryBg: 'bg-cyan-50 text-cyan-800 border border-cyan-200'
-      },
-      'drawer2': {
-        borderClass: 'border-sky-600',
-        categoryBg: 'bg-sky-50 text-sky-800 border border-sky-200'
-      },
-      'drawer3': {
-        borderClass: 'border-blue-600',
-        categoryBg: 'bg-blue-50 text-blue-800 border border-blue-200'
-      },
-      'drawer4': {
-        borderClass: 'border-indigo-400',
-        categoryBg: 'bg-indigo-50 text-indigo-800 border border-indigo-200'
-      },
-      'side': {
-        borderClass: 'border-slate-500',
-        categoryBg: 'bg-slate-100 text-slate-700 border border-slate-300'
-      },
-      'back': {
-        borderClass: 'border-zinc-500',
-        categoryBg: 'bg-zinc-100 text-zinc-700 border border-zinc-300'
-      }
+      'bridge': { borderClass: 'border-emerald-600', categoryBg: 'bg-emerald-50 text-emerald-800 border border-emerald-200' },
+      'countertop': { borderClass: 'border-teal-600', categoryBg: 'bg-teal-50 text-teal-800 border border-teal-200' },
+      'drawer1': { borderClass: 'border-cyan-600', categoryBg: 'bg-cyan-50 text-cyan-800 border border-cyan-200' },
+      'drawer2': { borderClass: 'border-sky-600', categoryBg: 'bg-sky-50 text-sky-800 border border-sky-200' },
+      'drawer3': { borderClass: 'border-blue-600', categoryBg: 'bg-blue-50 text-blue-800 border border-blue-200' },
+      'drawer4': { borderClass: 'border-indigo-400', categoryBg: 'bg-indigo-50 text-indigo-800 border border-indigo-200' },
+      'side': { borderClass: 'border-slate-500', categoryBg: 'bg-slate-100 text-slate-700 border border-slate-300' },
+      'back': { borderClass: 'border-zinc-500', categoryBg: 'bg-zinc-100 text-zinc-700 border border-zinc-300' }
     };
 
-    // 載入 JSON 資料
     function loadDrugsData() {
       const drugListContainer = document.getElementById('drugListContainer');
       try {
@@ -233,18 +207,15 @@
       }
     }
 
-    // 格式化藥品名稱
     function formatDrugName(drug) {
       const en = drug.nameEn ? drug.nameEn.trim() : '';
       const zh = drug.nameZh ? drug.nameZh.trim() : '';
-
       if (en && zh) return `${en} <span class="font-bold text-slate-700">(${zh})</span>`;
       if (en) return en;
       if (zh) return zh;
       return '未命名藥品';
     }
 
-    // 渲染藥品卡片
     function renderDrugs(list) {
       const drugListContainer = document.getElementById('drugListContainer');
       if (!drugListContainer) return;
@@ -256,36 +227,19 @@
 
       drugListContainer.innerHTML = list.map(drug => {
         const subNote = drawerSubtitles[drug.category] || drug.subtitle || '';
-
-        const theme = categoryThemeMap[drug.category] || {
-          borderClass: 'border-emerald-600',
-          categoryBg: 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-        };
-
+        const theme = categoryThemeMap[drug.category] || { borderClass: 'border-emerald-600', categoryBg: 'bg-emerald-50 text-emerald-800 border border-emerald-200' };
         const borderClass = drug.borderClass || theme.borderClass;
         const categoryBg = drug.categoryBg || theme.categoryBg;
-
-        const quantityHtml = drug.quantity ? 
-          `<span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">數量：${drug.quantity}</span>` : '';
-
-        const subNoteHtml = subNote ? 
-          `<p class="text-sm text-slate-500 font-normal mb-1">${subNote}</p>` : '';
-
-        const dosageHtml = (drug.dosage || drug.dosageForm) ? 
-          `<div class="text-sm font-semibold text-slate-700 mb-4">劑量：${drug.dosage || ''} ${drug.dosageForm ? `(${drug.dosageForm})` : ''}</div>` : '<div class="mb-4"></div>';
-
+        const quantityHtml = drug.quantity ? `<span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">數量：${drug.quantity}</span>` : '';
+        const subNoteHtml = subNote ? `<p class="text-sm text-slate-500 font-normal mb-1">${subNote}</p>` : '';
+        const dosageHtml = (drug.dosage || drug.dosageForm) ? `<div class="text-sm font-semibold text-slate-700 mb-4">劑量：${drug.dosage || ''} ${drug.dosageForm ? `(${drug.dosageForm})` : ''}</div>` : '<div class="mb-4"></div>';
         const brandHtml = drug.brandName ? `<p><strong class="font-bold text-slate-900">商品名：</strong>${drug.brandName}</p>` : '';
         const mechHtml = drug.mechanism ? `<p><strong class="font-bold text-slate-900">藥理機轉：</strong>${drug.mechanism}</p>` : '';
         const indHtml = drug.indications ? `<p><strong class="font-bold text-slate-900">臨床適應症：</strong>${drug.indications}</p>` : '';
 
         let nursingHtml = '';
         if (drug.nursingNotes && drug.nursingNotes.length > 0) {
-          let listItems = '';
-          if (Array.isArray(drug.nursingNotes)) {
-            listItems = drug.nursingNotes.map(note => `<li>${note}</li>`).join('');
-          } else {
-            listItems = `<li>${drug.nursingNotes}</li>`;
-          }
+          let listItems = Array.isArray(drug.nursingNotes) ? drug.nursingNotes.map(note => `<li>${note}</li>`).join('') : `<li>${drug.nursingNotes}</li>`;
           nursingHtml = `<div class="mt-2 pt-2 border-t border-slate-50"><p><strong class="font-bold text-slate-900">護理衛教注意事項：</strong></p><ul class="list-disc list-inside pl-1 text-xs text-slate-600 mt-1 space-y-1">${listItems}</ul></div>`;
         }
 
@@ -306,7 +260,6 @@
       }).join('');
     }
 
-    // 篩選 logic
     function filterDrugs() {
       const searchInput = document.getElementById('searchInput');
       const categorySelect = document.getElementById('categorySelect');
@@ -330,7 +283,6 @@
       renderDrugs(filtered);
     }
 
-    // 選擇藥品切換模型
     function selectDrug(drugId) {
       const title = document.getElementById('currentDrugTitle');
       const viewer = document.getElementById('drugViewer');
@@ -347,7 +299,7 @@
         if (drug.modelUrl && drug.modelUrl.trim() !== '') {
           noModelNotice.className = 'hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400';
           
-          // 自動將 JSON 裡的檔名轉換為 GitHub Releases 的雲端直連網址
+          // 自動轉換為 GitHub Releases 網址
           viewer.src = getCloudModelUrl(drug.modelUrl);
           
           viewer.cameraOrbit = 'auto auto auto';
@@ -376,28 +328,17 @@
       }
     }
 
-    // 回到頂端邏輯
     window.addEventListener('scroll', () => {
       const btn = document.getElementById('scrollToTopBtn');
       if (!btn) return;
-
       const baseStyle = 'fixed bottom-6 right-6 transition-all duration-300 bg-emerald-700 hover:bg-emerald-800 text-white p-3.5 rounded-full shadow-lg hover:shadow-xl focus:outline-none z-50 flex items-center justify-center ';
-      
-      if (window.scrollY > 300) {
-        btn.className = baseStyle + 'opacity-100';
-      } else {
-        btn.className = baseStyle + 'opacity-0 pointer-events-none';
-      }
+      btn.className = window.scrollY > 300 ? baseStyle + 'opacity-100' : baseStyle + 'opacity-0 pointer-events-none';
     });
 
     function scrollToTop() {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 初始化事件繫結
     document.addEventListener('DOMContentLoaded', () => {
       const searchInput = document.getElementById('searchInput');
       const categorySelect = document.getElementById('categorySelect');
