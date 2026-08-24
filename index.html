@@ -141,28 +141,26 @@
 
   <!-- JavaScript 邏輯 -->
   <script>
-    // 使用 Statically CDN 的跨網域相容 Release 代理網址
-    const BASE_MODEL_URL = "https://cdn.statically.io/gh/debby-0701/Medicine-test/v1.0.0/";
+    // Release jsDelivr CDN 基礎路徑 (指向版本 Tag v1.0.0)
+    const CDN_BASE_URL = "https://cdn.jsdelivr.net/gh/debby-0701/Medicine-test@v1.0.0/";
 
-    function getCloudModelUrl(localPath) {
-        if (!localPath || typeof localPath !== 'string' || localPath.trim() === '') return '';
-        
-        if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
-            return localPath;
-        }
+    function getReleaseCdnUrl(rawPath) {
+        if (!rawPath || typeof rawPath !== 'string' || rawPath.trim() === '') return '';
 
-        const cleanPath = localPath.trim();
-        let fileName = cleanPath.split('/').pop().split('\\').pop(); 
+        // 取出檔名 (例如 "m01_針頭.glb" 或 "M01_針頭.glb")
+        let fileName = rawPath.trim().split('/').pop().split('\\').pop();
         
-        // 修復首字母大小寫 (m01_... 轉 M01_...)
+        // 抓出檔名中的編號與中文名稱，確保格式與 Release 附件完全一致
+        // 如果檔名開頭是小寫 m，自動轉為大寫 M
         if (fileName.startsWith('m')) {
             fileName = 'M' + fileName.slice(1);
-        } 
+        }
+
+        // 對中文與特殊字元進行 URL Encode 編碼 (解決網址中文亂碼問題)
+        const encodedFileName = encodeURIComponent(fileName);
         
-        // 第一優先：如果 Release 是存放在存儲庫根目錄/特定資料夾的，可經由 CDN 直連
-        // 亦自動兼容釋出檔案 (Github Tag 訪問)
-        const finalUrl = `https://cdn.jsdelivr.net/gh/debby-0701/Medicine-test@v1.0.0/${fileName}`;
-        console.log("🔗 嘗試載入模型網址：", finalUrl);
+        const finalUrl = CDN_BASE_URL + encodedFileName;
+        console.log("🔗 載入 CDN 模型網址：", finalUrl);
         return finalUrl;
     }
 
@@ -231,7 +229,7 @@
       }
 
       drugListContainer.innerHTML = list.map(drug => {
-        const subNote = drawerSubtitles[drugCategory(drug.category)] || drug.subtitle || '';
+        const subNote = drawerSubtitles[drug.category] || drug.subtitle || '';
         const theme = categoryThemeMap[drug.category] || { borderClass: 'border-emerald-600', categoryBg: 'bg-emerald-50 text-emerald-800 border border-emerald-200' };
         const borderClass = drug.borderClass || theme.borderClass;
         const categoryBg = drug.categoryBg || theme.categoryBg;
@@ -263,10 +261,6 @@
           </article>
         `;
       }).join('');
-    }
-
-    function drugCategory(cat) {
-      return cat || '';
     }
 
     function filterDrugs() {
@@ -308,9 +302,9 @@
         if (drug.modelUrl && drug.modelUrl.trim() !== '') {
           noModelNotice.className = 'hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-400';
           
-          const targetUrl = getCloudModelUrl(drug.modelUrl);
+          const targetUrl = getReleaseCdnUrl(drug.modelUrl);
           
-          // 直接將網址給予 model-viewer 讓其原生請求
+          // 使用 setAttribute 設定 src
           viewer.setAttribute('src', targetUrl);
 
           viewer.cameraOrbit = 'auto auto auto';
