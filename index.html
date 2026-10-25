@@ -45,4 +45,319 @@
       
       <!-- 3D 模型展示區（手機版滿版且精簡緊湊） -->
       <section class="w-full order-1 lg:order-2 lg:col-span-5 sticky top-[57px] lg:top-24 z-40 bg-slate-100 lg:bg-transparent pb-2 lg:pb-0">
-        <div class="bg-white -mx-6 px-4 py-2 lg:mx-0 lg:p-5 rounded-none
+        <div class="bg-white -mx-6 px-4 py-2 lg:mx-0 lg:p-5 rounded-none lg:rounded-2xl shadow-md lg:shadow-sm border-y lg:border border-slate-200">
+          
+          <!-- 模型標題與說明 -->
+          <div class="mb-1.5 lg:mb-3 flex justify-between items-baseline">
+            <h2 id="currentDrugTitle" class="text-sm lg:text-lg font-bold text-slate-900 truncate">
+              Aspirin (阿司匹靈) - 3D 模型
+            </h2>
+            <span class="text-[10px] lg:text-xs text-slate-400 shrink-0 ml-2">單指旋轉 / 兩指縮放</span>
+          </div>
+
+          <!-- 3D 模型展示元件 -->
+          <div class="relative rounded-lg lg:rounded-xl overflow-hidden border border-slate-100 mb-1.5 lg:mb-4 bg-slate-50">
+            <model-viewer 
+              id="drugViewer" 
+              camera-controls 
+              auto-rotate 
+              shadow-intensity="1"
+              alt="藥品 3D 模型"
+            >
+            </model-viewer>
+
+            <div id="noModelNotice" class="hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-4 text-center text-slate-400">
+              <p class="text-xs font-medium">此藥品項目暫無 3D 模型檔案</p>
+            </div>
+          </div>
+
+          <!-- 按鈕區塊 -->
+          <div class="grid grid-cols-2 gap-2 lg:gap-3">
+            <button type="button" onclick="resetCamera()" class="w-full py-1 lg:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md lg:rounded-lg transition">
+              重設視角
+            </button>
+            <button type="button" onclick="toggleAutoRotate()" class="w-full py-1 lg:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
+              切換自動旋轉
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 左側欄位：包含搜尋列 + 藥品卡片清單 -->
+      <div class="w-full order-2 lg:order-1 lg:col-span-7 space-y-4">
+        
+        <!-- 搜尋與篩選列 -->
+        <section class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-3 items-center">
+          <div class="relative w-full flex-1">
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="搜尋藥品英文/中文名、商品名、作用..." 
+              class="w-full pl-3 pr-3 py-1.5 text-sm text-slate-600 bg-transparent focus:outline-none"
+            />
+          </div>
+
+          <div class="hidden sm:block h-6 w-[1px] bg-slate-200"></div>
+
+          <div class="w-full flex-1">
+            <select 
+              id="categorySelect" 
+              class="w-full px-2 py-1.5 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-emerald-600 bg-white text-slate-700 cursor-pointer"
+            >
+              <option value="all">所有類別</option>
+              <option value="bridge">檯面橋架</option>
+              <option value="countertop">檯面用品</option>
+              <option value="drawer1">第一層抽屜</option>
+              <option value="drawer2">第二層抽屜</option>
+              <option value="drawer3">第三層抽屜</option>
+              <option value="drawer4">第四層抽屜</option>
+              <option value="drawer5">第五層抽屜</option>
+              <option value="side">側邊用物</option>
+              <option value="back">背面</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- 藥品卡片動態渲染容器 -->
+        <div class="space-y-4" id="drugListContainer"></div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 回到最上面按鈕 -->
+  <button 
+    type="button"
+    id="scrollToTopBtn" 
+    onclick="scrollToTop()"
+    class="fixed bottom-6 right-6 transition-all duration-300 bg-emerald-700 hover:bg-emerald-800 text-white p-3.5 rounded-full shadow-lg hover:shadow-xl focus:outline-none z-50 flex items-center justify-center opacity-0 pointer-events-none"
+    title="回到頂端"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"></path>
+    </svg>
+  </button>
+
+  <!-- JavaScript 邏輯 -->
+  <script>
+    // Supabase 公開儲存桶的基礎網址
+    const SUPABASE_BASE_URL = "https://mxoubofrsvzxyknagweb.supabase.co/storage/v1/object/public/models/";
+
+    function getSupabaseUrl(rawPath) {
+        if (!rawPath || typeof rawPath !== 'string' || rawPath.trim() === '') return '';
+
+        // 如果傳入的是完整 HTTP 網址則直接返回
+        if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
+            return rawPath;
+        }
+
+        // 取出檔名 (例如 "M01_針頭.glb")
+        let fileName = rawPath.trim().split('/').pop().split('\\').pop();
+        
+        // 自動校正大小寫 (例如將開頭小寫 m01 改為大寫 M01)
+        if (fileName.startsWith('m')) {
+            fileName = 'M' + fileName.slice(1);
+        }
+
+        // 自動對中文檔名進行 URL Encode 編碼
+        const encodedFileName = encodeURIComponent(fileName);
+        
+        return SUPABASE_BASE_URL + encodedFileName;
+    }
+
+    let drugsData = [];
+
+    const drawerSubtitles = {
+      'drawer1': '急救車必備藥品',
+      'drawer2': '靜脈輸液用物',
+      'drawer3': '插管用物',
+      'drawer4': '其它輔助用物',
+      'drawer5': '呼吸道輔助用物'
+    };
+
+    // 對應您提供的九種顏色風格
+    const categoryThemeMap = {
+      'bridge':     { borderClass: 'border-[#D7EAEE]', categoryBg: 'bg-[#D7EAEE]/50 text-slate-800 border border-[#D7EAEE]' },
+      'countertop': { borderClass: 'border-[#9FD8E1]', categoryBg: 'bg-[#9FD8E1]/40 text-slate-800 border border-[#9FD8E1]' },
+      'drawer1':    { borderClass: 'border-[#BDE8E0]', categoryBg: 'bg-[#BDE8E0]/40 text-slate-800 border border-[#BDE8E0]' },
+      'drawer2':    { borderClass: 'border-[#9CD1CE]', categoryBg: 'bg-[#9CD1CE]/40 text-slate-800 border border-[#9CD1CE]' },
+      'drawer3':    { borderClass: 'border-[#7ED7D3]', categoryBg: 'bg-[#7ED7D3]/30 text-teal-950 border border-[#7ED7D3]' },
+      'drawer4':    { borderClass: 'border-[#3EAEB1]', categoryBg: 'bg-[#3EAEB1]/20 text-teal-950 border border-[#3EAEB1]' },
+      'drawer5':    { borderClass: 'border-[#61BACA]', categoryBg: 'bg-[#61BACA]/30 text-slate-900 border border-[#61BACA]' },
+      'side':       { borderClass: 'border-[#1D837F]', categoryBg: 'bg-[#1D837F]/15 text-teal-950 border border-[#1D837F]' },
+      'back':       { borderClass: 'border-[#125150]', categoryBg: 'bg-[#125150]/15 text-teal-950 border border-[#125150]' }
+    };
+
+    function loadDrugsData() {
+      const drugListContainer = document.getElementById('drugListContainer');
+      try {
+        drugListContainer.innerHTML = '<div class="bg-white p-8 text-center text-slate-400 rounded-xl border border-slate-200"><p class="animate-pulse">正在載入藥品資料庫...</p></div>';
+
+        fetch('./drugs.json')
+          .then(response => {
+            if (!response.ok) throw new Error('讀取 drugs.json 失敗');
+            return response.json();
+          })
+          .then(data => {
+            drugsData = data;
+            renderDrugs(drugsData);
+            if (drugsData.length > 0) {
+              selectDrug(drugsData[0].id);
+            }
+          })
+          .catch(error => {
+            console.error('載入失敗:', error);
+            drugListContainer.innerHTML = '<div class="bg-red-50 p-6 text-center text-red-600 rounded-xl border border-red-200">無法載入 drugs.json，請確認檔案位置與格式。</div>';
+          });
+      } catch (e) {
+        console.error('讀取異常:', e);
+      }
+    }
+
+    function formatDrugName(drug) {
+      const en = drug.nameEn ? drug.nameEn.trim() : '';
+      const zh = drug.nameZh ? drug.nameZh.trim() : '';
+      if (en && zh) return `${en} <span class="font-bold text-slate-700">(${zh})</span>`;
+      if (en) return en;
+      if (zh) return zh;
+      return '未命名藥品';
+    }
+
+    function renderDrugs(list) {
+      const drugListContainer = document.getElementById('drugListContainer');
+      if (!drugListContainer) return;
+
+      if (list.length === 0) {
+        drugListContainer.innerHTML = '<div class="bg-white p-8 text-center text-slate-400 rounded-xl border border-slate-200">找不到符合條件的藥品。</div>';
+        return;
+      }
+
+      drugListContainer.innerHTML = list.map(drug => {
+        const subNote = drawerSubtitles[drug.category] || drug.subtitle || '';
+        const theme = categoryThemeMap[drug.category] || { borderClass: 'border-slate-300', categoryBg: 'bg-slate-100 text-slate-800 border border-slate-200' };
+        const borderClass = drug.borderClass || theme.borderClass;
+        const categoryBg = drug.categoryBg || theme.categoryBg;
+        const quantityHtml = drug.quantity ? `<span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">數量：${drug.quantity}</span>` : '';
+        const subNoteHtml = subNote ? `<p class="text-sm text-slate-500 font-normal mb-1">${subNote}</p>` : '';
+        const dosageHtml = (drug.dosage || drug.dosageForm) ? `<div class="text-sm font-semibold text-slate-700 mb-4">劑量：${drug.dosage || ''} ${drug.dosageForm ? `(${drug.dosageForm})` : ''}</div>` : '<div class="mb-4"></div>';
+        const brandHtml = drug.brandName ? `<p><strong class="font-bold text-slate-900">商品名：</strong>${drug.brandName}</p>` : '';
+        const mechHtml = drug.mechanism ? `<p><strong class="font-bold text-slate-900">藥理機轉：</strong>${drug.mechanism}</p>` : '';
+        const indHtml = drug.indications ? `<p><strong class="font-bold text-slate-900">臨床適應症：</strong>${drug.indications}</p>` : '';
+
+        let nursingHtml = '';
+        if (drug.nursingNotes && drug.nursingNotes.length > 0) {
+          let listItems = Array.isArray(drug.nursingNotes) ? drug.nursingNotes.map(note => `<li>${note}</li>`).join('') : `<li>${drug.nursingNotes}</li>`;
+          nursingHtml = `<div class="mt-2 pt-2 border-t border-slate-50"><p><strong class="font-bold text-slate-900">護理衛教注意事項：</strong></p><ul class="list-disc list-inside pl-1 text-xs text-slate-600 mt-1 space-y-1">${listItems}</ul></div>`;
+        }
+
+        return `
+          <article onclick="selectDrug('${drug.id}')" class="bg-white p-5 rounded-2xl shadow-sm border-l-4 ${borderClass} hover:shadow-md transition cursor-pointer relative">
+            <div class="flex justify-between items-center mb-2">
+              <span class="inline-block px-2.5 py-0.5 ${categoryBg} text-xs font-bold rounded-md">${drug.categoryLabel || drug.category}</span>
+              ${quantityHtml}
+            </div>
+            ${subNoteHtml}
+            <h3 class="text-lg font-bold text-slate-900 mb-1">${formatDrugName(drug)}</h3>
+            ${dosageHtml}
+            <div class="text-sm space-y-1.5 text-slate-700 border-t border-slate-100 pt-2">
+              ${brandHtml}${mechHtml}${indHtml}${nursingHtml}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function filterDrugs() {
+      const searchInput = document.getElementById('searchInput');
+      const categorySelect = document.getElementById('categorySelect');
+      if (!searchInput || !categorySelect) return;
+
+      const keyword = searchInput.value.toLowerCase().trim();
+      const selectedCategory = categorySelect.value;
+
+      const filtered = drugsData.filter(drug => {
+        const matchCategory = selectedCategory === 'all' || drug.category === selectedCategory;
+        const matchKeyword = 
+          (drug.nameEn && drug.nameEn.toLowerCase().includes(keyword)) ||
+          (drug.nameZh && drug.nameZh.toLowerCase().includes(keyword)) ||
+          (drug.brandName && drug.brandName.toLowerCase().includes(keyword)) ||
+          (drug.mechanism && drug.mechanism.toLowerCase().includes(keyword)) ||
+          (drug.indications && drug.indications.toLowerCase().includes(keyword));
+
+        return matchCategory && matchKeyword;
+      });
+
+      renderDrugs(filtered);
+    }
+
+    function selectDrug(drugId) {
+      const title = document.getElementById('currentDrugTitle');
+      const viewer = document.getElementById('drugViewer');
+      const noModelNotice = document.getElementById('noModelNotice');
+
+      const drug = drugsData.find(d => d.id === drugId);
+      if (drug && title && viewer && noModelNotice) {
+        const displayName = (drug.nameEn && drug.nameZh) 
+          ? `${drug.nameEn} (${drug.nameZh})` 
+          : (drug.nameEn || drug.nameZh || '未命名藥品');
+          
+        title.innerText = `${displayName} - 3D 模型`;
+
+        if (drug.modelUrl && drug.modelUrl.trim() !== '') {
+          noModelNotice.className = 'hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-4 text-center text-slate-400';
+          
+          const targetUrl = getSupabaseUrl(drug.modelUrl);
+          
+          viewer.setAttribute('src', targetUrl);
+
+          viewer.cameraOrbit = 'auto auto auto';
+          if (typeof viewer.jumpToGoal === 'function') {
+            viewer.jumpToGoal();
+          }
+        } else {
+          viewer.removeAttribute('src');
+          noModelNotice.className = 'absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-4 text-center text-slate-400';
+        }
+      }
+    }
+
+    function resetCamera() {
+      const viewer = document.getElementById('drugViewer');
+      if (viewer) {
+        viewer.cameraOrbit = 'auto auto auto';
+        viewer.cameraTarget = 'auto auto auto';
+      }
+    }
+
+    function toggleAutoRotate() {
+      const viewer = document.getElementById('drugViewer');
+      if (viewer) {
+        viewer.autoRotate = !viewer.autoRotate;
+      }
+    }
+
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('scrollToTopBtn');
+      if (!btn) return;
+      const baseStyle = 'fixed bottom-6 right-6 transition-all duration-300 bg-emerald-700 hover:bg-emerald-800 text-white p-3.5 rounded-full shadow-lg hover:shadow-xl focus:outline-none z-50 flex items-center justify-center ';
+      btn.className = window.scrollY > 300 ? baseStyle + 'opacity-100' : baseStyle + 'opacity-0 pointer-events-none';
+    });
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('searchInput');
+      const categorySelect = document.getElementById('categorySelect');
+
+      if (searchInput) searchInput.addEventListener('input', filterDrugs);
+      if (categorySelect) categorySelect.addEventListener('change', filterDrugs);
+
+      loadDrugsData();
+    });
+  </script>
+</body>
+</html>
