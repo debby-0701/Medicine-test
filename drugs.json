@@ -1047,6 +1047,105 @@
  {
    "id": "drug_096",
    "nameEn": "",
+   "nameZh": "Child(兒童) Ambu+ Mask 3 號+氧氣導管",
+   "category": "drawer5",
+   "drawerSubtitles": "呼吸道輔助用物",
+   "categoryLabel": "第五層抽屜",
+   "quantity": "1",
+   "dosageForm": "",
+   "modelUrl": "./models/drawer5-1.glb"
+ },
+ {
+   "id": "drug_097",
+   "nameEn": "",
+   "nameZh": "Adult(成人) Ambu+Mask 5 號+氧氣導管",
+   "category": "drawer5",
+   "drawerSubtitles": "呼吸道輔助用物",
+   "categoryLabel": "第五層抽屜",
+   "quantity": "1",
+   "dosageForm": "",
+   "modelUrl": "./models/drawer5-2.glb"
+ },
+ {
+   "id": "drug_098",
+   "nameEn": "",
+   "nameZh": "Suction Canister(硬殼抽痰外罐)",
+   "category": "drawer5",
+   "drawerSubtitles": "呼吸道輔助用物",
+   "categoryLabel": "第五層抽屜",
+   "quantity": "1",
+   "dosageForm": "",
+   "modelUrl": "./models/drawer5-4.glb"
+ },
+ {
+   "id": "drug_099",
+   "nameEn": "",
+   "nameZh": "氧氣流量表及接頭 ",
+   "category": "drawer5",
+   "drawerSubtitles": "呼吸道輔助用物",
+   "categoryLabel": "第五層抽屜",
+   "quantity": "1",
+   "dosageForm": "",
+   "modelUrl": "./models/drawer5-6.glb"
+ },
+ {
+   "id": "drug_100",
+   "nameEn": "",
+   "nameZh": "抽吸壓力錶",
+   "category": "drawer5",
+   "drawerSubtitles": "呼吸道輔助用物",
+   "categoryLabel": "第五層抽屜",
+   "quantity": "1",
+   "dosageForm": "",
+   "modelUrl": "./models/drawer5-5.glb"
+ },
+ {
+   "id": "drug_101",
+   "nameEn": "",
+   "nameZh": "抽痰連接管 ",
+   "category": "drawer5",
+   "drawerSubtitles": "呼吸道輔助用物",
+   "categoryLabel": "第五層抽屜",
+   "quantity": "1",
+   "dosageForm": "",
+   "modelUrl": "./models/drawer5-3.glb"
+ },
+ {
+   "id": "drug_102",
+   "nameEn": "",
+   "nameZh": "Yankauer suction",
+   "category": "drawer5",
+   "drawerSubtitles": "呼吸道輔助用物",
+   "categoryLabel": "第五層抽屜",
+   "quantity": "2",
+   "dosageForm": "",
+   "modelUrl": "./models/drawer5-7.glb"
+ },
+ {
+   "id": "drug_103",
+   "nameEn": "",
+   "nameZh": "防護包",
+   "category": "drawer5",
+   "drawerSubtitles": "呼吸道輔助用物",
+   "categoryLabel": "第五層抽屜",
+   "quantity": "3",
+   "dosageForm": "",
+   "modelUrl": "./models/drawer5-9.glb"
+ },
+ {
+   "id": "drug_104",
+   "nameEn": "",
+   "nameZh": "外科口罩(盒)",
+   "category": "drawer5",
+   "drawerSubtitles": "呼吸道輔助用物",
+   "categoryLabel": "第五層抽屜",
+   "quantity": "1",
+   "dosageForm": "",
+   "modelUrl": "./models/drawer5-8.glb"
+ },
+ {
+   "id": "drug_105",
+   "nameEn": "",
    "nameZh": "急救車塑膠鎖",
    "category": "side",
    "drawerSubtitles": "",
@@ -1056,7 +1155,7 @@
    "modelUrl": "./models/m01_06.glb"
  },
  {
-   "id": "drug_097",
+   "id": "drug_106",
    "nameEn": "",
    "nameZh": "空針收集器 ",
    "category": "side",
@@ -1067,7 +1166,7 @@
    "modelUrl": "./models/m08_01.glb"
  },
  {
-   "id": "drug_098",
+   "id": "drug_107",
    "nameEn": "",
    "nameZh": "Vial & Amp 收集器 ",
    "category": "side",
@@ -1078,7 +1177,7 @@
    "modelUrl": "./models/m08_02.glb"
  },
  {
-   "id": "drug_099",
+   "id": "drug_108",
    "nameEn": "",
    "nameZh": "感染性垃圾袋",
    "category": "side",
@@ -1089,7 +1188,7 @@
    "modelUrl": "./models/m08_03.glb"
  },
  {
-   "id": "drug_100",
+   "id": "drug_109",
    "nameEn": "",
    "nameZh": "抽痰管",
    "category": "side",
@@ -1100,7 +1199,7 @@
    "modelUrl": "./models/m08_04.glb"
  },
  {
-   "id": "drug_101",
+   "id": "drug_110",
    "nameEn": "",
    "nameZh": "抽痰無菌手套 ",
    "category": "side",
@@ -1111,7 +1210,7 @@
    "modelUrl": "./models/m08_05.glb"
  },
  {
-   "id": "drug_102",
+   "id": "drug_111",
    "nameEn": "",
    "nameZh": "乳膠檢診手套",
    "category": "side",
@@ -1122,7 +1221,7 @@
    "modelUrl": "./models/m08_06.glb"
  },
  {
-   "id": "drug_103",
+   "id": "drug_112",
    "nameEn": "",
    "nameZh": "安瓿折斷器",
    "category": "side",
@@ -1133,7 +1232,7 @@
    "modelUrl": "./models/Side01.glb"
  },
  {
-   "id": "drug_104",
+   "id": "drug_113",
    "nameEn": "",
    "nameZh": "急救板",
    "category": "back",
